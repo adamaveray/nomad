@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-define('VAGRANTS_PATH', __DIR__.'/vagrants.json');
+define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
 
 class Nomad {
 	const STATUS_ERROR	= 1;
