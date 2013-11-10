@@ -7,7 +7,13 @@ A Vagrant VMs manager. It's written in PHP.
 Install
 -------
 
-Copy the `nomad` file to your bin directory (eg `/usr/local/bin`), and ensure it is executable (`chmod +x /usr/local/bin/nomad)
+Run the following command in your terminal to install Nomad:
+
+```bash
+curl -o /usr/local/bin/nomad https://raw.github.com/adamaveray/nomad/master/nomad && chmod +x /usr/local/bin/nomad
+```
+
+If you want to do the above manually, copy the `nomad` file to your bin directory (eg `/usr/local/bin`), and ensure it is executable (`chmod +x /usr/local/bin/nomad).
 
 
 Usage
