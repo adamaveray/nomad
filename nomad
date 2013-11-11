@@ -34,6 +34,7 @@ class Nomad {
 		switch($action){
 			case 'add':
 			case 'remove':
+			case 'info':
 			case 'list':
 				$this->{'action'.$action}($args);
 				break;
@@ -89,6 +90,16 @@ class Nomad {
 		$this->removeDirectory($name);
 	}
 
+	protected function actionInfo(array $params){
+		if(!isset($params[0])){
+			throw new \OutOfBoundsException('No name given');
+		}
+		$name	= $params[0];
+		
+		$directory	= $this->getDirectory($name);
+		echo $directory.PHP_EOL;
+	}
+
 	protected function actionList(){
 		$directories	= $this->getDirectories();
 
@@ -122,6 +133,7 @@ Usage: {$this->script} [-h] command [name] [<args>]
 Available subcommands:
     add
     remove
+	info
     list
     <any Vagrant command>
 
@@ -147,6 +159,16 @@ TXT;
 Usage: {$this->script} remove name [-h]
 
 Removes the Vagrant VM [name] from Nomad
+
+	-h, --help                       Print this help
+TXT;
+				break;
+
+			case 'info':
+				$help = <<<TXT
+Usage: {$this->script} info name [-h]
+
+Shows the directory for the Vagrant VM [name]
 
 	-h, --help                       Print this help
 TXT;
