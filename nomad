@@ -116,7 +116,7 @@ class Nomad {
 		echo implode(PHP_EOL, array_keys($directories)).PHP_EOL;
 	}
 
-	protected function vagrantCommand($name, $args){
+	protected function vagrantCommand($name, $args, $print = null){
 		$directory	= $this->getDirectory($name);
 
 		if(!isset($args[0])){
@@ -124,7 +124,7 @@ class Nomad {
 		}
 		$command	= array_shift($args);
 
-		$this->executeCommand($directory, 'vagrant '.$command, $args);
+		$this->executeCommand($directory, 'vagrant '.$command, $args, $print);
 	}
 
 
@@ -197,7 +197,11 @@ TXT;
 		$this->printout($help);
 	}
 
-	protected function executeCommand($directory, $command, array $args = null){
+	protected function executeCommand($directory, $command, array $args = null, $print = null){
+		if(!isset($print)){
+			$print	= true;
+		}
+		
 		$args	= (array)$args;
 		foreach($args as &$arg){
 			$arg	= escapeshellarg($arg);
@@ -215,10 +219,16 @@ TXT;
 		if(!is_resource($process)){
 			return;
 		}
+		
+		$output	= '';
 		while($s = fgets($pipes[1])){
-			print $s;
-			flush();
+			$output	.= $s.PHP_EOL;
+			if($print){
+				$this->printout($s);
+			}
 		}
+		
+		return $output;
 	}
 
 
