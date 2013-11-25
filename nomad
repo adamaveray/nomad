@@ -19,6 +19,11 @@ class Nomad {
 		$this->script	= $script;
 		$this->args		= $args;
 	}
+	
+	protected function printout($line){
+		echo $line.PHP_EOL;
+		flush();
+	}
 
 	public function run(){
 		$args	= $this->args;
@@ -97,7 +102,7 @@ class Nomad {
 		$name	= $params[0];
 		
 		$directory	= $this->getDirectory($name);
-		echo $directory.PHP_EOL;
+		$this->printout($directory);
 	}
 
 	protected function actionList(){
@@ -125,7 +130,7 @@ class Nomad {
 
 	public function outputHelp($action = null){
 		if(!isset($action) || in_array($action, ['-h', '--help'])){
-			echo <<<TXT
+			$output	= <<<TXT
 Usage: {$this->script} [-h] command [name] [<args>]
 
     -h, --help                       Print this help.
@@ -133,11 +138,11 @@ Usage: {$this->script} [-h] command [name] [<args>]
 Available subcommands:
     add
     remove
-	info
+    info
     list
     <any Vagrant command>
-
 TXT;
+			$this->printout($output);
 			return;
 		}
 
@@ -189,7 +194,7 @@ TXT;
 				break;
 		}
 
-		echo $help.PHP_EOL;
+		$this->printout($help);
 	}
 
 	protected function executeCommand($directory, $command, array $args = null){
