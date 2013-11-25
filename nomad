@@ -105,15 +105,53 @@ class Nomad {
 		$this->printout($directory);
 	}
 
-	protected function actionList(){
+	protected function actionList(array $params){
 		$directories	= $this->getDirectories();
+		$getStatuses	= (in_array('-s', $params) || in_array('--status', $params));
 
 		if(!$directories){
-			echo '(No Vagrants added)'.PHP_EOL;
+			$this->printout('(No Vagrants added)');
 			return;
 		}
+		
+		foreach($directories as $name => $directory){
+			if($getStatuses){
+				// Check status
+				$boxes		= $this->getMachineStatuses($directory);
+				$statuses	= [];
+				if(count($boxes) === 1){
+					$statuses[]	= current($boxes);
+				} else {
+					foreach($boxes as $box => $status){
+						$statuses[]	= $box.': '.$status;
+					}
+				}
+			
+				$this->printout($name.' '.($statuses ? '('.implode(', ', $statuses).')' : '[no boxes]'));
+			} else {
+				// Simple
+				$this->printout($name);
+			}
+		}
+	}
 
-		echo implode(PHP_EOL, array_keys($directories)).PHP_EOL;
+	protected function getMachineStatuses($directory){
+		$response	= $this->executeCommand($directory, 'vagrant status', null, false);
+		$lines	= preg_split('~\n~', $response, -1, \PREG_SPLIT_NO_EMPTY);
+		
+		$boxes	= [];
+		
+		for($i = 1, $count = count($lines); $i < $count; $i++){
+			$line	= trim($lines[$i]);
+			if($line === '' || !preg_match('~^(\S+)\s+(\w+)\s\((\w+)\).*?$~', $line, $matches)){
+				// End of machines
+				break;
+			}
+			
+			$boxes[$matches[1]]	= $matches[2];
+		}
+		
+		return $boxes;
 	}
 
 	protected function vagrantCommand($name, $args, $print = null){
