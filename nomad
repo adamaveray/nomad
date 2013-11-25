@@ -175,7 +175,7 @@ Usage: {$this->script} info name [-h]
 
 Shows the directory for the Vagrant VM [name]
 
-	-h, --help                       Print this help
+    -h, --help                       Print this help
 TXT;
 				break;
 
