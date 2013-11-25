@@ -105,18 +105,56 @@ class Nomad {
 		$this->printout($directory);
 	}
 
-	protected function actionList(){
+	protected function actionList(array $params){
 		$directories	= $this->getDirectories();
+		$getStatuses	= (in_array('-s', $params) || in_array('--status', $params));
 
 		if(!$directories){
-			echo '(No Vagrants added)'.PHP_EOL;
+			$this->printout('(No Vagrants added)');
 			return;
 		}
-
-		echo implode(PHP_EOL, array_keys($directories)).PHP_EOL;
+		
+		foreach($directories as $name => $directory){
+			if($getStatuses){
+				// Check status
+				$boxes		= $this->getMachineStatuses($directory);
+				$statuses	= [];
+				if(count($boxes) === 1){
+					$statuses[]	= current($boxes);
+				} else {
+					foreach($boxes as $box => $status){
+						$statuses[]	= $box.': '.$status;
+					}
+				}
+			
+				$this->printout($name.' '.($statuses ? '('.implode(', ', $statuses).')' : '[no boxes]'));
+			} else {
+				// Simple
+				$this->printout($name);
+			}
+		}
 	}
 
-	protected function vagrantCommand($name, $args){
+	protected function getMachineStatuses($directory){
+		$response	= $this->executeCommand($directory, 'vagrant status', null, false);
+		$lines	= preg_split('~\n~', $response, -1, \PREG_SPLIT_NO_EMPTY);
+		
+		$boxes	= [];
+		
+		for($i = 1, $count = count($lines); $i < $count; $i++){
+			$line	= trim($lines[$i]);
+			if($line === '' || !preg_match('~^(\S+)\s+(\w+)\s\((\w+)\).*?$~', $line, $matches)){
+				// End of machines
+				break;
+			}
+			
+			$boxes[$matches[1]]	= $matches[2];
+		}
+		
+		return $boxes;
+	}
+
+	protected function vagrantCommand($name, $args, $print = null){
 		$directory	= $this->getDirectory($name);
 
 		if(!isset($args[0])){
@@ -124,7 +162,7 @@ class Nomad {
 		}
 		$command	= array_shift($args);
 
-		$this->executeCommand($directory, 'vagrant '.$command, $args);
+		$this->executeCommand($directory, 'vagrant '.$command, $args, $print);
 	}
 
 
@@ -171,7 +209,7 @@ TXT;
 
 			case 'info':
 				$help = <<<TXT
-Usage: {$this->script} info name [-h]
+Usage: {$this->script} info name [-s] [-h]
 
 Shows the directory for the Vagrant VM [name]
 
@@ -185,6 +223,7 @@ Usage: {$this->script} list [-h]
 
 Outputs all the available Vagrant VMs
 
+    -s, --status                     Show each machine's status
     -h, --help                       Print this help
 TXT;
 				break;
@@ -197,7 +236,11 @@ TXT;
 		$this->printout($help);
 	}
 
-	protected function executeCommand($directory, $command, array $args = null){
+	protected function executeCommand($directory, $command, array $args = null, $print = null){
+		if(!isset($print)){
+			$print	= true;
+		}
+		
 		$args	= (array)$args;
 		foreach($args as &$arg){
 			$arg	= escapeshellarg($arg);
@@ -215,10 +258,16 @@ TXT;
 		if(!is_resource($process)){
 			return;
 		}
+		
+		$output	= '';
 		while($s = fgets($pipes[1])){
-			print $s;
-			flush();
+			$output	.= $s.PHP_EOL;
+			if($print){
+				$this->printout($s);
+			}
 		}
+		
+		return $output;
 	}
 
 
