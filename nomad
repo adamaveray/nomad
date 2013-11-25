@@ -209,7 +209,7 @@ TXT;
 
 			case 'info':
 				$help = <<<TXT
-Usage: {$this->script} info name [-h]
+Usage: {$this->script} info name [-s] [-h]
 
 Shows the directory for the Vagrant VM [name]
 
@@ -223,6 +223,7 @@ Usage: {$this->script} list [-h]
 
 Outputs all the available Vagrant VMs
 
+    -s, --status                     Show each machine's status
     -h, --help                       Print this help
 TXT;
 				break;
