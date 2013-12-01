@@ -268,6 +268,8 @@ TXT;
 			}
 		}
 		
+		proc_close($process);
+		
 		return $output;
 	}
 
