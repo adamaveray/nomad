@@ -1,6 +1,9 @@
 #!/usr/bin/php
 <?php
+/*! Nomad 1.0.1 | github.com/adamaveray/nomad | MIT */
+
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
+define('BR', "\n");
 
 class Nomad {
 	const STATUS_ERROR	= 1;
@@ -20,8 +23,8 @@ class Nomad {
 		$this->args		= $args;
 	}
 	
-	protected function printout($line){
-		echo $line.PHP_EOL;
+	protected function printout($line, $linebreak = true){
+		echo $line.($linebreak ? BR : '');
 		flush();
 	}
 
@@ -154,17 +157,25 @@ class Nomad {
 		return $boxes;
 	}
 
-	protected function vagrantCommand($name, $args, $print = null){
+	protected function vagrantCommand($name, array $args, $print = null){
 		$directory	= $this->getDirectory($name);
 
 		if(!isset($args[0])){
 			throw new \OutOfBoundsException('No Vagrant command given');
 		}
 		$command	= array_shift($args);
+		
+		switch($command){
+			case 'ssh';
+				// Cannot handle
+				$this->printout('Cannot perform SSH through '.__CLASS__.' - instead use the following command:');
+				$this->printout('    cd `nomad info '.$name.'` && vagrant ssh');
+				return;
+		}
 
+		// Pass through command
 		$this->executeCommand($directory, 'vagrant '.$command, $args, $print);
 	}
-
 
 	public function outputHelp($action = null){
 		if(!isset($action) || in_array($action, ['-h', '--help'])){
@@ -261,11 +272,13 @@ TXT;
 		
 		$output	= '';
 		while($s = fgets($pipes[1])){
-			$output	.= $s.PHP_EOL;
+			$output	.= $s;
 			if($print){
-				$this->printout($s);
+				$this->printout($s, false);
 			}
 		}
+		
+		proc_close($process);
 		
 		return $output;
 	}
@@ -345,6 +358,6 @@ try {
 	return $nomad->getStatus();
 
 } catch(Exception $e){
-	echo 'Error: '.$e->getMessage().PHP_EOL;
+	echo 'Error: '.$e->getMessage().BR;
 	return Nomad::STATUS_ERROR;
 }
