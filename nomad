@@ -1,5 +1,7 @@
 #!/usr/bin/php
 <?php
+/*! Nomad 1.0.1 | github.com/adamaveray/nomad | MIT */
+
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
 define('BR', "\n");
 
