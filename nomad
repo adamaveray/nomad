@@ -1,12 +1,13 @@
 #!/usr/bin/php
 <?php
-/*! Nomad 1.0.1 | github.com/adamaveray/nomad | MIT */
+/*! Nomad 1.1 | github.com/adamaveray/nomad | MIT */
 
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
 define('BR', "\n");
 
 class Nomad {
 	const STATUS_ERROR	= 1;
+	const UPDATE_URL	= 'https://raw.github.com/adamaveray/nomad/master/nomad';
 
 	/** @var string */
 	protected $script;
@@ -44,6 +45,7 @@ class Nomad {
 			case 'remove':
 			case 'info':
 			case 'list':
+			case 'update':
 				$this->{'action'.$action}($args);
 				break;
 
@@ -138,6 +140,48 @@ class Nomad {
 		}
 	}
 
+	protected function actionUpdate(array $params){
+		$newSource	= $this->getNewestScript();
+		if(!isset($newSource)){
+			throw new \RuntimeException('Cannot download script');
+		}
+
+		if(!$this->needsUpdate($newSource)){
+			$this->printout('Already up to date');
+			return;
+		}
+
+		// Update
+		file_put_contents(__FILE__, $newSource);
+		$this->printout(__CLASS__.' updated');
+	}
+
+
+	protected function getNewestScript(){
+		$newSource	= file_get_contents(static::UPDATE_URL);
+		if(!$newSource){
+			return;
+		}
+
+		return $newSource;
+	}
+
+	protected function needsUpdate($newSource = null, $currentSource = null){
+		if(!isset($newSource)){
+			$newSource	= $this->getNewestScript();
+			if(!isset($newSource)){
+				throw new \RuntimeException('Cannot download script');
+			}
+		}
+		if(!isset($currentSource)){
+			$currentSource	= file_get_contents(__FILE__);
+		}
+
+		$current	= sha1(file_get_contents(__FILE__));
+		$new		= sha1($newSource);
+		return ($current !== $new);
+	}
+
 	protected function getMachineStatuses($directory){
 		$response	= $this->executeCommand($directory, 'vagrant status', null, false);
 		$lines	= preg_split('~\n~', $response, -1, \PREG_SPLIT_NO_EMPTY);
@@ -189,6 +233,7 @@ Available subcommands:
     remove
     info
     list
+    update
     <any Vagrant command>
 TXT;
 			$this->printout($output);
@@ -235,6 +280,16 @@ Usage: {$this->script} list [-h]
 Outputs all the available Vagrant VMs
 
     -s, --status                     Show each machine's status
+    -h, --help                       Print this help
+TXT;
+				break;
+
+			case 'update':
+				$help = <<<TXT
+Usage: {$this->script} update [-h]
+
+Updates the script to the latest version
+
     -h, --help                       Print this help
 TXT;
 				break;
