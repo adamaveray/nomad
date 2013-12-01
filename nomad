@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
+define('BR', "\n");
 
 class Nomad {
 	const STATUS_ERROR	= 1;
@@ -20,8 +21,8 @@ class Nomad {
 		$this->args		= $args;
 	}
 	
-	protected function printout($line){
-		echo $line.PHP_EOL;
+	protected function printout($line, $linebreak = true){
+		echo $line.($linebreak ? BR : '');
 		flush();
 	}
 
@@ -261,9 +262,9 @@ TXT;
 		
 		$output	= '';
 		while($s = fgets($pipes[1])){
-			$output	.= $s.PHP_EOL;
+			$output	.= $s;
 			if($print){
-				$this->printout($s);
+				$this->printout($s, false);
 			}
 		}
 		
@@ -345,6 +346,6 @@ try {
 	return $nomad->getStatus();
 
 } catch(Exception $e){
-	echo 'Error: '.$e->getMessage().PHP_EOL;
+	echo 'Error: '.$e->getMessage().BR;
 	return Nomad::STATUS_ERROR;
 }
