@@ -155,17 +155,25 @@ class Nomad {
 		return $boxes;
 	}
 
-	protected function vagrantCommand($name, $args, $print = null){
+	protected function vagrantCommand($name, array $args, $print = null){
 		$directory	= $this->getDirectory($name);
 
 		if(!isset($args[0])){
 			throw new \OutOfBoundsException('No Vagrant command given');
 		}
 		$command	= array_shift($args);
+		
+		switch($command){
+			case 'ssh';
+				// Cannot handle
+				$this->printout('Cannot perform SSH through '.__CLASS__.' - instead use the following command:');
+				$this->printout('    cd `nomad info '.$name.'` && vagrant ssh');
+				return;
+		}
 
+		// Pass through command
 		$this->executeCommand($directory, 'vagrant '.$command, $args, $print);
 	}
-
 
 	public function outputHelp($action = null){
 		if(!isset($action) || in_array($action, ['-h', '--help'])){
