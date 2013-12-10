@@ -120,23 +120,29 @@ class Nomad {
 		}
 		
 		foreach($directories as $name => $directory){
+			$output	= '';
 			if($getStatuses){
 				// Check status
 				$boxes		= $this->getMachineStatuses($directory);
 				$statuses	= [];
+
 				if(count($boxes) === 1){
-					$statuses[]	= current($boxes);
-				} else {
+					$output	= ': '.current($boxes);
+
+				} else if($boxes){
 					foreach($boxes as $box => $status){
 						$statuses[]	= $box.': '.$status;
 					}
+
+					$list	= BR.'  - ';
+					$output	= $list.implode($list, $statuses);
+
+				} else {
+					$output	= '[no boxes]';
 				}
-			
-				$this->printout($name.' '.($statuses ? '('.implode(', ', $statuses).')' : '[no boxes]'));
-			} else {
-				// Simple
-				$this->printout($name);
 			}
+
+			$this->printout($name.$output);
 		}
 	}
 
@@ -190,7 +196,7 @@ class Nomad {
 		
 		for($i = 1, $count = count($lines); $i < $count; $i++){
 			$line	= trim($lines[$i]);
-			if($line === '' || !preg_match('~^(\S+)\s+(\w+)\s\((\w+)\).*?$~', $line, $matches)){
+			if($line === '' || !preg_match('~^(\S+)\s+([\w\s]+?)\s\((\w+)\).*?$~', $line, $matches)){
 				// End of machines
 				break;
 			}
