@@ -46,6 +46,7 @@ class Nomad {
 			case 'info':
 			case 'list':
 			case 'update':
+			case 'restart':
 				$this->{'action'.$action}($args);
 				break;
 
@@ -108,6 +109,24 @@ class Nomad {
 		
 		$directory	= $this->getDirectory($name);
 		$this->printout($directory);
+	}
+
+	protected function actionRestart(array $params){
+		if(!isset($params[0])){
+			throw new \OutOfBoundsException('No name given');
+		}
+		$name	= array_shift($params);
+		
+		if(isset($params[0]) && $params[0][0] == '-'){
+			return $this->error();
+		}
+		
+		array_unshift($params, 'halt');
+		$this->vagrantCommand($name, $params);
+		
+		array_shift($params);
+		array_unshift($params, 'up');
+		$this->vagrantCommand($name, $params);
 	}
 
 	protected function actionList(array $params){
@@ -240,6 +259,7 @@ Available subcommands:
     info
     list
     update
+    restart
     <any Vagrant command>
 TXT;
 			$this->printout($output);
@@ -286,6 +306,16 @@ Usage: {$this->script} list [-h]
 Outputs all the available Vagrant VMs
 
     -s, --status                     Show each machine's status
+    -h, --help                       Print this help
+TXT;
+				break;
+
+			case 'restart':
+				$help = <<<TXT
+Usage: {$this->script} restart [-h]
+
+Halts and ups the Vagrant VM
+
     -h, --help                       Print this help
 TXT;
 				break;
