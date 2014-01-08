@@ -378,7 +378,7 @@ TXT;
 	protected function getDirectory($name){
 		$directories	= $this->getDirectories();
 		if(!isset($directories[$name])){
-			throw new \OutOfRangeException('Name does not exist');
+			throw new \OutOfRangeException('Name "'.$name.'" does not exist');
 		}
 
 		return $directories[$name];
