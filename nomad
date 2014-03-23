@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-/*! Nomad 1.1 | github.com/adamaveray/nomad | MIT */
+/*! Nomad 1.3 | github.com/adamaveray/nomad | MIT */
 
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
 define('BR', "\n");
