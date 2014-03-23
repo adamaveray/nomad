@@ -1,6 +1,6 @@
 #!/usr/bin/php
 <?php
-/*! Nomad 1.1 | github.com/adamaveray/nomad | MIT */
+/*! Nomad 1.3 | github.com/adamaveray/nomad | MIT */
 
 define('VAGRANTS_PATH', $_SERVER['HOME'].'/.vagrants.json');
 define('BR', "\n");
@@ -235,15 +235,13 @@ class Nomad {
 		$command	= array_shift($args);
 		
 		switch($command){
-			case 'ssh';
-				// Cannot handle
-				$this->printout('Cannot perform SSH through '.__CLASS__.' - instead use the following command:');
-				$this->printout('    cd `nomad info '.$name.'` && vagrant ssh');
-				return;
+			case 'ssh':
+				$passthrough	= true;
+				break;
 		}
 
 		// Pass through command
-		$this->executeCommand($directory, 'vagrant '.$command, $args, $print);
+		$this->executeCommand($directory, 'vagrant '.$command, $args, $print, $passthrough);
 	}
 
 	public function outputHelp($action = null){
@@ -338,7 +336,7 @@ TXT;
 		$this->printout($help);
 	}
 
-	protected function executeCommand($directory, $command, array $args = null, $print = null){
+	protected function executeCommand($directory, $command, array $args = null, $print = null, $passthrough = false){
 		if(!isset($print)){
 			$print	= true;
 		}
@@ -347,29 +345,34 @@ TXT;
 		foreach($args as &$arg){
 			$arg	= escapeshellarg($arg);
 		}
-
-		$descriptorspec = [
-			0	=> ['pipe', 'r'],	// stdin - read
-			1	=> ['pipe', 'w'],   // stdout - write
-			2	=> ['pipe', 'w']    // stderr - write
-		];
-
-		flush();
-		$process = proc_open('cd "'.$directory.'"; '.$command.' '.implode(' ', $args), $descriptorspec, $pipes, realpath('./'));
-
-		if(!is_resource($process)){
-			return;
-		}
 		
-		$output	= '';
-		while($s = fgets($pipes[1])){
-			$output	.= $s;
-			if($print){
-				$this->printout($s, false);
+		if($passthrough){
+			$output	= passthru('cd "'.$directory.'"; '.$command.' '.implode(' ', $args));
+			
+		} else {
+			$descriptorspec = [
+				0	=> ['pipe', 'r'],	// stdin - read
+				1	=> ['pipe', 'w'],   // stdout - write
+				2	=> ['pipe', 'w']    // stderr - write
+			];
+
+			flush();
+			$process = proc_open('cd "'.$directory.'"; '.$command.' '.implode(' ', $args), $descriptorspec, $pipes, realpath('./'));
+
+			if(!is_resource($process)){
+				return;
 			}
-		}
 		
-		proc_close($process);
+			$output	= '';
+			while($s = fgets($pipes[1])){
+				$output	.= $s;
+				if($print){
+					$this->printout($s, false);
+				}
+			}
+		
+			proc_close($process);
+		}
 		
 		return $output;
 	}

@@ -29,6 +29,7 @@ Then, you can call any Vagrant command through Nomad to one of the registered VM
 
 ```bash
 $ nomad example up
+$ nomad example ssh
 ```
 
 If you have a [multi-machine setup](http://docs.vagrantup.com/v2/multi-machine/) for one of your VMs, you can still address the sub-machines like normal:
