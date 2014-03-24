@@ -234,6 +234,7 @@ class Nomad {
 		}
 		$command	= array_shift($args);
 		
+		$passthrough	= false;
 		switch($command){
 			case 'ssh':
 				$passthrough	= true;
